@@ -21,6 +21,7 @@ namespace Pong_game_Gamedev
         string loser;
         bool gameOver;
         bool gameStart;
+        bool playerActive;
 
         public Game1()
         {
@@ -33,7 +34,7 @@ namespace Pong_game_Gamedev
         {
             _graphics.PreferredBackBufferWidth = 1020;
             _graphics.PreferredBackBufferHeight = 1020;
-            _graphics.IsFullScreen = true;
+            _graphics.IsFullScreen = false;
             _graphics.ApplyChanges();
             screenWidth = GraphicsDevice.Viewport.Width;
             screenHeight = GraphicsDevice.Viewport.Height;
@@ -44,10 +45,10 @@ namespace Pong_game_Gamedev
             ballTexture = new Texture2D(GraphicsDevice, 1, 1);
             ballTexture.SetData(new Color[] { Color.Blue });
             // positie van paddle definen ( X , Y )
-            paddlePosition1 = new Vector2(20, screenHeight / 2 - paddleHeight / 2);
-            paddlePosition2 = new Vector2(screenWidth - 40, screenHeight / 2 - paddleHeight / 2);
-            paddlePosition3 = new Vector2(screenWidth / 2 - paddleWidth / 2, 20);
-            paddlePosition4 = new Vector2(screenWidth / 2 - paddleWidth / 2, screenHeight - 40);
+            paddlePosition1 = new Vector2(screenWidth / 2 - paddleWidth / 2, screenHeight - 40);
+            paddlePosition2 = new Vector2(20, screenHeight / 2 - paddleHeight / 2);
+            paddlePosition3 = new Vector2(screenWidth - 40, screenHeight / 2 - paddleHeight / 2);
+            paddlePosition4 = new Vector2(screenWidth / 2 - paddleWidth / 2, 20);
             // bal positie
             ballPosition = new Vector2(screenWidth / 2 - ballWidth / 2, screenHeight / 2 - ballHeight / 2);
             // bal snelheid en bewegingsrichting, hele tijd positie += velocity om nieuwe positie te bepalen.
@@ -67,6 +68,7 @@ namespace Pong_game_Gamedev
             scorePlayer4 = 10;
             gameOver = false;
             gameStart = true;
+            playerActive = false;
             loser = string.Empty;
             base.Initialize();
         }
@@ -109,78 +111,75 @@ namespace Pong_game_Gamedev
                 return;
             }
             paddleSpeed = 15f;
+            if (kstate.IsKeyDown(Keys.Left) || kstate.IsKeyDown(Keys.Right))
+            {
+                playerActive = true;
+            }
 
-            if (kstate.IsKeyDown(Keys.W)) paddlePosition1.Y -= paddleSpeed;
-            if (kstate.IsKeyDown(Keys.S)) paddlePosition1.Y += paddleSpeed;
-            if (kstate.IsKeyDown(Keys.Up)) paddlePosition2.Y -= paddleSpeed;
-            if (kstate.IsKeyDown(Keys.Down)) paddlePosition2.Y += paddleSpeed;
-            if (kstate.IsKeyDown(Keys.A)) paddlePosition3.X -= paddleSpeed;
-            if (kstate.IsKeyDown(Keys.D)) paddlePosition3.X += paddleSpeed;
-            if (kstate.IsKeyDown(Keys.Left)) paddlePosition4.X -= paddleSpeed;
-            if (kstate.IsKeyDown(Keys.Right)) paddlePosition4.X += paddleSpeed;
+            if (kstate.IsKeyDown(Keys.W)) paddlePosition2.Y -= paddleSpeed;
+            if (kstate.IsKeyDown(Keys.S)) paddlePosition2.Y += paddleSpeed;
+            if (kstate.IsKeyDown(Keys.Up)) paddlePosition3.Y -= paddleSpeed;
+            if (kstate.IsKeyDown(Keys.Down)) paddlePosition3.Y += paddleSpeed;
+            if (kstate.IsKeyDown(Keys.A)) paddlePosition4.X -= paddleSpeed;
+            if (kstate.IsKeyDown(Keys.D)) paddlePosition4.X += paddleSpeed;
+            if (kstate.IsKeyDown(Keys.Left)) paddlePosition1.X -= paddleSpeed;
+            if (kstate.IsKeyDown(Keys.Right)) paddlePosition1.X += paddleSpeed;
             // Keep paddles within screen bounds
-            paddlePosition1.Y = Math.Clamp(paddlePosition1.Y, 20, screenHeight - paddleHeight - paddleWidth);
+            paddlePosition1.X = Math.Clamp(paddlePosition1.X, 20, screenWidth - paddleHeight - paddleWidth);
             paddlePosition2.Y = Math.Clamp(paddlePosition2.Y, 20, screenHeight - paddleHeight - paddleWidth);
-            paddlePosition3.X = Math.Clamp(paddlePosition3.X, 20, screenWidth - paddleHeight - paddleWidth);
+            paddlePosition3.Y = Math.Clamp(paddlePosition3.Y, 20, screenHeight - paddleHeight - paddleWidth);
             paddlePosition4.X = Math.Clamp(paddlePosition4.X, 20, screenWidth - paddleHeight - paddleWidth);
             // Move the ball
             ballPosition += ballVelocity;
             // Ball collision with paddles
             Rectangle ballRect = new Rectangle((int)ballPosition.X, (int)ballPosition.Y, ballWidth, ballHeight);
-            Rectangle paddle1Rect = new Rectangle((int)paddlePosition1.X, (int)paddlePosition1.Y, paddleWidth, paddleHeight);
+            Rectangle paddle1Rect = new Rectangle((int)paddlePosition1.X, (int)paddlePosition1.Y, paddleHeight, paddleWidth);
             Rectangle paddle2Rect = new Rectangle((int)paddlePosition2.X, (int)paddlePosition2.Y, paddleWidth, paddleHeight);
-            Rectangle paddle3Rect = new Rectangle((int)paddlePosition3.X, (int)paddlePosition3.Y, paddleHeight, paddleWidth);
+            Rectangle paddle3Rect = new Rectangle((int)paddlePosition3.X, (int)paddlePosition3.Y, paddleWidth, paddleHeight);
             Rectangle paddle4Rect = new Rectangle((int)paddlePosition4.X, (int)paddlePosition4.Y, paddleHeight, paddleWidth);
 
-            if (ballRect.Intersects(paddle1Rect))
+            if (ballRect.Intersects(paddle2Rect))
             {
-                float relativeIntersectY = (paddlePosition1.Y + paddleHeight / 2) - ballPosition.Y;
+                float relativeIntersectY = (paddlePosition2.Y + paddleHeight / 2) - ballPosition.Y;
                 float normalizedIntersection = relativeIntersectY / (paddleHeight / 2);
                 float bounceAngle = normalizedIntersection * (float)(Math.PI / 4); // Max bounce angle = 45 degrees
                 Vector2 normal = new Vector2(1, 0); // Left paddle normal
                 //ballVelocity = Bounce(ballVelocity, normal);
-                ballSpeed *= 1.05f;
+                if (ballSpeed * 1.05 <= 20)
+                {
+                    ballSpeed *= 1.05f;
+                }
+                else
+                {
+                    ballSpeed = 20;
+                }
 
                 // Adjust bounce angle
                 ballVelocity.Y = ballSpeed * (float)Math.Sin(bounceAngle);
                 ballVelocity.X = Math.Abs(ballVelocity.X); // Ensure it moves to the right
 
-                // Increase ball speed after bounce, apply to both X and Y velocity components
-                
                 ballVelocity = Vector2.Normalize(ballVelocity) * ballSpeed;
             }
-            else if (ballRect.Intersects(paddle2Rect))
+            else if (ballRect.Intersects(paddle3Rect))
             {
-                float relativeIntersectY = (paddlePosition2.Y + paddleHeight / 2) - ballPosition.Y;
+                float relativeIntersectY = (paddlePosition3.Y + paddleHeight / 2) - ballPosition.Y;
                 float normalizedIntersection = relativeIntersectY / (paddleHeight / 2);
                 float bounceAngle = normalizedIntersection * (float)(Math.PI / 4);
                 Vector2 normal = new Vector2(-1, 0); // Right paddle normal
                 //ballVelocity = Bounce(ballVelocity, normal);
-                ballSpeed *= 1.05f;
+                if (ballSpeed * 1.05 <= 20)
+                {
+                    ballSpeed *= 1.05f;
+                }
+                else
+                {
+                    ballSpeed = 20;
+                }
 
                 // Adjust bounce angle
                 ballVelocity.Y = ballSpeed * (float)Math.Sin(bounceAngle);
                 ballVelocity.X = -Math.Abs(ballVelocity.X); // Ensure it moves to the left
 
-                // Increase ball speed after bounce
-                
-                ballVelocity = Vector2.Normalize(ballVelocity) * ballSpeed;
-            }
-            else if (ballRect.Intersects(paddle3Rect))
-            {
-                float relativeIntersectX = (paddlePosition3.X + paddleWidth / 2) - ballPosition.X;
-                float normalizedIntersection = relativeIntersectX / (paddleWidth / 2);
-                float bounceAngle = normalizedIntersection * (float)(Math.PI / 4);
-                Vector2 normal = new Vector2(0, 1); // Top paddle normal
-                //ballVelocity = Bounce(ballVelocity, normal);
-                ballSpeed *= 1.05f;
-
-                // Adjust bounce angle
-                ballVelocity.X = ballSpeed * (float)Math.Sin(bounceAngle);
-                ballVelocity.Y = Math.Abs(ballVelocity.Y); // Ensure it moves downward
-
-                // Increase ball speed after bounce
-                
                 ballVelocity = Vector2.Normalize(ballVelocity) * ballSpeed;
             }
             else if (ballRect.Intersects(paddle4Rect))
@@ -188,19 +187,80 @@ namespace Pong_game_Gamedev
                 float relativeIntersectX = (paddlePosition4.X + paddleWidth / 2) - ballPosition.X;
                 float normalizedIntersection = relativeIntersectX / (paddleWidth / 2);
                 float bounceAngle = normalizedIntersection * (float)(Math.PI / 4);
+                Vector2 normal = new Vector2(0, 1); // Top paddle normal
+                //ballVelocity = Bounce(ballVelocity, normal);
+                if (ballSpeed * 1.05 <= 20)
+                {
+                    ballSpeed *= 1.05f;
+                }
+                else
+                {
+                    ballSpeed = 20;
+                }
+
+                // Adjust bounce angle
+                ballVelocity.X = ballSpeed * (float)Math.Sin(bounceAngle);
+                ballVelocity.Y = Math.Abs(ballVelocity.Y); // Ensure it moves downward
+
+                ballVelocity = Vector2.Normalize(ballVelocity) * ballSpeed;
+            }
+            else if (ballRect.Intersects(paddle1Rect))
+            {
+                float relativeIntersectX = (paddlePosition1.X + paddleWidth / 2) - ballPosition.X;
+                float normalizedIntersection = relativeIntersectX / (paddleWidth / 2);
+                float bounceAngle = normalizedIntersection * (float)(Math.PI / 4);
                 Vector2 normal = new Vector2(0, -1); // Bottom paddle normal
                 //ballVelocity = Bounce(ballVelocity, normal);
-                ballSpeed *= 1.05f;
+                if (ballSpeed * 1.05 <= 20)
+                {
+                    ballSpeed *= 1.05f;
+                }
+                else
+                {
+                    ballSpeed = 20;
+                }
 
                 // Adjust bounce angle
                 ballVelocity.X = ballSpeed * (float)Math.Sin(bounceAngle);
                 ballVelocity.Y = -Math.Abs(ballVelocity.Y); // Ensure it moves upward
 
-                // Increase ball speed after bounce
-                
                 ballVelocity = Vector2.Normalize(ballVelocity) * ballSpeed;
             }
-
+            if (!playerActive)
+            {
+                if (paddlePosition1.X > ballVelocity.X)
+                {
+                    paddlePosition1.X -= ballVelocity.X;
+                }
+                else
+                {
+                    paddlePosition1.X += ballVelocity.X;
+                }
+            }
+            //if (paddlePosition2.Y > ballVelocity.Y)
+            //{
+            //    paddlePosition2.Y -= ballVelocity.Y;
+            //}
+            //else
+            //{
+            //    paddlePosition2.Y += ballVelocity.Y;
+            //}
+            //if (paddlePosition3.Y > ballVelocity.Y)
+            //{
+            //    paddlePosition3.Y -= ballVelocity.Y;
+            //}
+            //else
+            //{
+            //    paddlePosition3.Y += ballVelocity.Y;
+            //}
+            //if (paddlePosition4.X > ballVelocity.X)
+            //{
+            //    paddlePosition4.X -= ballVelocity.X;
+            //}
+            //else
+            //{
+            //    paddlePosition4.X += ballVelocity.X;
+            //}
 
             // Check for scoring
             if (ballPosition.X < 0)
@@ -268,6 +328,7 @@ namespace Pong_game_Gamedev
             scorePlayer1 = 10;
             scorePlayer4 = 10;
             gameOver = false;
+            playerActive = false;
             loser = string.Empty;
             ResetBall();
         }
@@ -276,13 +337,13 @@ namespace Pong_game_Gamedev
         {
             GraphicsDevice.Clear(Color.Black);
             _spriteBatch.Begin();
-            _spriteBatch.Draw(paddleTexture, new Rectangle((int)paddlePosition1.X, (int)paddlePosition1.Y, paddleWidth, paddleHeight), Color.White);
+            _spriteBatch.Draw(paddleTexture, new Rectangle((int)paddlePosition1.X, (int)paddlePosition1.Y, paddleHeight, paddleWidth), Color.White);
             _spriteBatch.Draw(paddleTexture, new Rectangle((int)paddlePosition2.X, (int)paddlePosition2.Y, paddleWidth, paddleHeight), Color.White);
-            _spriteBatch.Draw(paddleTexture, new Rectangle((int)paddlePosition3.X, (int)paddlePosition3.Y, paddleHeight, paddleWidth), Color.White);
+            _spriteBatch.Draw(paddleTexture, new Rectangle((int)paddlePosition3.X, (int)paddlePosition3.Y, paddleWidth, paddleHeight), Color.White);
             _spriteBatch.Draw(paddleTexture, new Rectangle((int)paddlePosition4.X, (int)paddlePosition4.Y, paddleHeight, paddleWidth), Color.White);
 
 
-            _spriteBatch.Draw(ballTexture, ballPosition, new Rectangle((int)ballPosition.X, (int)ballPosition.Y, ballWidth, ballHeight), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.5f);
+            _spriteBatch.Draw(ballTexture, ballPosition, new Rectangle((int)ballPosition.X, (int)ballPosition.Y, ballWidth, ballHeight), Color.White, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0.05f);
             _spriteBatch.DrawString(scoreFont, $"Speler 1: {scorePlayer1}", new Vector2(screenWidth / 2, screenHeight - 100), Color.White, 0, Vector2.Zero, 2f, SpriteEffects.None, 0.1f);
             _spriteBatch.DrawString(scoreFont, $"Speler 2: {scorePlayer2}", new Vector2(50, screenHeight / 2), Color.White, 0, Vector2.Zero, 2f, SpriteEffects.None, 0.1f);
             _spriteBatch.DrawString(scoreFont, $"Speler 3: {scorePlayer3}", new Vector2(screenWidth - 290, screenHeight / 2), Color.White, 0, Vector2.Zero, 2f, SpriteEffects.None, 0.1f);
