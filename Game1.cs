@@ -138,35 +138,12 @@ namespace Pong_game_Gamedev
             Rectangle paddle3Rect = new Rectangle((int)paddlePosition3.X, (int)paddlePosition3.Y, paddleWidth, paddleHeight);
             Rectangle paddle4Rect = new Rectangle((int)paddlePosition4.X, (int)paddlePosition4.Y, paddleHeight, paddleWidth);
 
-            if (ballRect.Intersects(paddle2Rect))
+            if (ballRect.Intersects(paddle1Rect)) // Onderste paddle
             {
-                float relativeIntersectY = (paddlePosition2.Y + paddleHeight / 2) - ballPosition.Y;
-                float normalizedIntersection = relativeIntersectY / (paddleHeight / 2);
-                float bounceAngle = normalizedIntersection * (float)(Math.PI / 4); // Max bounce angle = 45 degrees
-                Vector2 normal = new Vector2(1, 0); // Left paddle normal
-                //ballVelocity = Bounce(ballVelocity, normal);
-                if (ballSpeed * 1.05 <= 20)
-                {
-                    ballSpeed *= 1.05f;
-                }
-                else
-                {
-                    ballSpeed = 20;
-                }
-
-                // Adjust bounce angle
-                ballVelocity.Y = ballSpeed * (float)Math.Sin(bounceAngle);
-                ballVelocity.X = Math.Abs(ballVelocity.X); // Ensure it moves to the right
-
-                ballVelocity = Vector2.Normalize(ballVelocity) * ballSpeed;
-            }
-            else if (ballRect.Intersects(paddle3Rect))
-            {
-                float relativeIntersectY = (paddlePosition3.Y + paddleHeight / 2) - ballPosition.Y;
-                float normalizedIntersection = relativeIntersectY / (paddleHeight / 2);
+                float relativeIntersectX = ballPosition.X - (paddlePosition1.X + paddleHeight / 2);
+                float normalizedIntersection = relativeIntersectX / (paddleHeight / 2);
                 float bounceAngle = normalizedIntersection * (float)(Math.PI / 4);
-                Vector2 normal = new Vector2(-1, 0); // Right paddle normal
-                //ballVelocity = Bounce(ballVelocity, normal);
+
                 if (ballSpeed * 1.05 <= 20)
                 {
                     ballSpeed *= 1.05f;
@@ -176,41 +153,19 @@ namespace Pong_game_Gamedev
                     ballSpeed = 20;
                 }
 
-                // Adjust bounce angle
-                ballVelocity.Y = ballSpeed * (float)Math.Sin(bounceAngle);
-                ballVelocity.X = -Math.Abs(ballVelocity.X); // Ensure it moves to the left
-
-                ballVelocity = Vector2.Normalize(ballVelocity) * ballSpeed;
-            }
-            else if (ballRect.Intersects(paddle4Rect))
-            {
-                float relativeIntersectX = (paddlePosition4.X + paddleWidth / 2) - ballPosition.X;
-                float normalizedIntersection = relativeIntersectX / (paddleWidth / 2);
-                float bounceAngle = normalizedIntersection * (float)(Math.PI / 4);
-                Vector2 normal = new Vector2(0, 1); // Top paddle normal
-                //ballVelocity = Bounce(ballVelocity, normal);
-                if (ballSpeed * 1.05 <= 20)
-                {
-                    ballSpeed *= 1.05f;
-                }
-                else
-                {
-                    ballSpeed = 20;
-                }
-
-                // Adjust bounce angle
+                // Bal moet omhoog stuiteren, maar X afhankelijk van raakpunt
                 ballVelocity.X = ballSpeed * (float)Math.Sin(bounceAngle);
-                ballVelocity.Y = Math.Abs(ballVelocity.Y); // Ensure it moves downward
+                ballVelocity.Y = -Math.Abs(ballSpeed * (float)Math.Cos(bounceAngle));
 
                 ballVelocity = Vector2.Normalize(ballVelocity) * ballSpeed;
             }
-            else if (ballRect.Intersects(paddle1Rect))
+
+            else if (ballRect.Intersects(paddle2Rect)) // Linker paddle
             {
-                float relativeIntersectX = (paddlePosition1.X + paddleWidth / 2) - ballPosition.X;
-                float normalizedIntersection = relativeIntersectX / (paddleWidth / 2);
+                float relativeIntersectY = ballPosition.Y - (paddlePosition2.Y + paddleHeight / 2);
+                float normalizedIntersection = relativeIntersectY / (paddleHeight / 2);
                 float bounceAngle = normalizedIntersection * (float)(Math.PI / 4);
-                Vector2 normal = new Vector2(0, -1); // Bottom paddle normal
-                //ballVelocity = Bounce(ballVelocity, normal);
+
                 if (ballSpeed * 1.05 <= 20)
                 {
                     ballSpeed *= 1.05f;
@@ -220,12 +175,60 @@ namespace Pong_game_Gamedev
                     ballSpeed = 20;
                 }
 
-                // Adjust bounce angle
-                ballVelocity.X = ballSpeed * (float)Math.Sin(bounceAngle);
-                ballVelocity.Y = -Math.Abs(ballVelocity.Y); // Ensure it moves upward
+                // Bal moet naar rechts, maar Y afhankelijk van raakpunt
+                ballVelocity.X = Math.Abs(ballSpeed * (float)Math.Cos(bounceAngle));
+                ballVelocity.Y = ballSpeed * (float)Math.Sin(bounceAngle);
 
                 ballVelocity = Vector2.Normalize(ballVelocity) * ballSpeed;
             }
+
+            else if (ballRect.Intersects(paddle3Rect)) // Rechter paddle
+            {
+                float relativeIntersectY = ballPosition.Y - (paddlePosition3.Y + paddleHeight / 2);
+                float normalizedIntersection = relativeIntersectY / (paddleHeight / 2);
+                float bounceAngle = normalizedIntersection * (float)(Math.PI / 4);
+
+                if (ballSpeed * 1.05 <= 20)
+                {
+                    ballSpeed *= 1.05f;
+                }
+                else
+                {
+                    ballSpeed = 20;
+                }
+
+                // Bal moet naar links, maar Y afhankelijk van raakpunt
+                ballVelocity.X = -Math.Abs(ballSpeed * (float)Math.Cos(bounceAngle));
+                ballVelocity.Y = ballSpeed * (float)Math.Sin(bounceAngle);
+
+                ballVelocity = Vector2.Normalize(ballVelocity) * ballSpeed;
+            }
+
+            else if (ballRect.Intersects(paddle4Rect)) // Bovenste paddle
+            {
+                float relativeIntersectX = ballPosition.X - (paddlePosition4.X + paddleHeight / 2);
+                float normalizedIntersection = relativeIntersectX / (paddleHeight / 2);
+                float bounceAngle = normalizedIntersection * (float)(Math.PI / 4);
+
+                if (ballSpeed * 1.05 <= 20)
+                {
+                    ballSpeed *= 1.05f;
+                }
+                else
+                {
+                    ballSpeed = 20;
+                }
+
+                // Bal moet omlaag stuiteren, maar X afhankelijk van raakpunt
+                ballVelocity.X = ballSpeed * (float)Math.Sin(bounceAngle);
+
+                // Let op! Hier spiegelen we de Y richting, maar X moet hetzelfde blijven als bij paddle1
+                ballVelocity.Y = Math.Abs(ballSpeed * (float)Math.Cos(bounceAngle));
+
+                ballVelocity = Vector2.Normalize(ballVelocity) * ballSpeed;
+            }
+
+
             if (!playerActive)
             {
                 if (paddlePosition1.X > ballVelocity.X)
