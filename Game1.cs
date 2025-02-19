@@ -21,7 +21,7 @@ namespace Pong_game_Gamedev
         string loser;
         bool gameOver;
         bool gameStart;
-        bool playerActive;
+        bool player1Active, player2Active, player3Active, player4Active;
 
         public Game1()
         {
@@ -68,7 +68,10 @@ namespace Pong_game_Gamedev
             scorePlayer4 = 10;
             gameOver = false;
             gameStart = true;
-            playerActive = false;
+            player1Active = false;
+            player2Active = false;
+            player3Active = false;
+            player4Active = false;
             loser = string.Empty;
             base.Initialize();
         }
@@ -113,17 +116,28 @@ namespace Pong_game_Gamedev
             paddleSpeed = 15f;
             if (kstate.IsKeyDown(Keys.Left) || kstate.IsKeyDown(Keys.Right))
             {
-                playerActive = true;
+                player1Active = true;
             }
-
+            if (kstate.IsKeyDown(Keys.W) || kstate.IsKeyDown(Keys.S))
+            {
+                player2Active = true;
+            }
+            if (kstate.IsKeyDown(Keys.Up) || kstate.IsKeyDown(Keys.Down))
+            {
+                player3Active = true;
+            }
+            if (kstate.IsKeyDown(Keys.A) || kstate.IsKeyDown(Keys.D))
+            {
+                player4Active = true;
+            }
+            if (kstate.IsKeyDown(Keys.Left)) paddlePosition1.X -= paddleSpeed;
+            if (kstate.IsKeyDown(Keys.Right)) paddlePosition1.X += paddleSpeed;
             if (kstate.IsKeyDown(Keys.W)) paddlePosition2.Y -= paddleSpeed;
             if (kstate.IsKeyDown(Keys.S)) paddlePosition2.Y += paddleSpeed;
             if (kstate.IsKeyDown(Keys.Up)) paddlePosition3.Y -= paddleSpeed;
             if (kstate.IsKeyDown(Keys.Down)) paddlePosition3.Y += paddleSpeed;
             if (kstate.IsKeyDown(Keys.A)) paddlePosition4.X -= paddleSpeed;
             if (kstate.IsKeyDown(Keys.D)) paddlePosition4.X += paddleSpeed;
-            if (kstate.IsKeyDown(Keys.Left)) paddlePosition1.X -= paddleSpeed;
-            if (kstate.IsKeyDown(Keys.Right)) paddlePosition1.X += paddleSpeed;
             // Keep paddles within screen bounds
             paddlePosition1.X = Math.Clamp(paddlePosition1.X, 20, screenWidth - paddleHeight - paddleWidth);
             paddlePosition2.Y = Math.Clamp(paddlePosition2.Y, 20, screenHeight - paddleHeight - paddleWidth);
@@ -153,13 +167,11 @@ namespace Pong_game_Gamedev
                     ballSpeed = 20;
                 }
 
-                // Bal moet omhoog stuiteren, maar X afhankelijk van raakpunt
                 ballVelocity.X = ballSpeed * (float)Math.Sin(bounceAngle);
                 ballVelocity.Y = -Math.Abs(ballSpeed * (float)Math.Cos(bounceAngle));
 
                 ballVelocity = Vector2.Normalize(ballVelocity) * ballSpeed;
             }
-
             else if (ballRect.Intersects(paddle2Rect)) // Linker paddle
             {
                 float relativeIntersectY = ballPosition.Y - (paddlePosition2.Y + paddleHeight / 2);
@@ -175,13 +187,11 @@ namespace Pong_game_Gamedev
                     ballSpeed = 20;
                 }
 
-                // Bal moet naar rechts, maar Y afhankelijk van raakpunt
                 ballVelocity.X = Math.Abs(ballSpeed * (float)Math.Cos(bounceAngle));
                 ballVelocity.Y = ballSpeed * (float)Math.Sin(bounceAngle);
 
                 ballVelocity = Vector2.Normalize(ballVelocity) * ballSpeed;
             }
-
             else if (ballRect.Intersects(paddle3Rect)) // Rechter paddle
             {
                 float relativeIntersectY = ballPosition.Y - (paddlePosition3.Y + paddleHeight / 2);
@@ -197,13 +207,11 @@ namespace Pong_game_Gamedev
                     ballSpeed = 20;
                 }
 
-                // Bal moet naar links, maar Y afhankelijk van raakpunt
                 ballVelocity.X = -Math.Abs(ballSpeed * (float)Math.Cos(bounceAngle));
                 ballVelocity.Y = ballSpeed * (float)Math.Sin(bounceAngle);
 
                 ballVelocity = Vector2.Normalize(ballVelocity) * ballSpeed;
             }
-
             else if (ballRect.Intersects(paddle4Rect)) // Bovenste paddle
             {
                 float relativeIntersectX = ballPosition.X - (paddlePosition4.X + paddleHeight / 2);
@@ -219,53 +227,56 @@ namespace Pong_game_Gamedev
                     ballSpeed = 20;
                 }
 
-                // Bal moet omlaag stuiteren, maar X afhankelijk van raakpunt
                 ballVelocity.X = ballSpeed * (float)Math.Sin(bounceAngle);
-
-                // Let op! Hier spiegelen we de Y richting, maar X moet hetzelfde blijven als bij paddle1
                 ballVelocity.Y = Math.Abs(ballSpeed * (float)Math.Cos(bounceAngle));
 
                 ballVelocity = Vector2.Normalize(ballVelocity) * ballSpeed;
             }
-
-
-            if (!playerActive)
+            if (!player1Active)
             {
-                if (paddlePosition1.X > ballVelocity.X)
+                if (paddlePosition1.X > ballPosition.X)
                 {
-                    paddlePosition1.X -= ballVelocity.X;
+                    paddlePosition1.X -= paddleSpeed / 2;
                 }
                 else
                 {
-                    paddlePosition1.X += ballVelocity.X;
+                    paddlePosition1.X += paddleSpeed / 2;
                 }
             }
-            //if (paddlePosition2.Y > ballVelocity.Y)
-            //{
-            //    paddlePosition2.Y -= ballVelocity.Y;
-            //}
-            //else
-            //{
-            //    paddlePosition2.Y += ballVelocity.Y;
-            //}
-            //if (paddlePosition3.Y > ballVelocity.Y)
-            //{
-            //    paddlePosition3.Y -= ballVelocity.Y;
-            //}
-            //else
-            //{
-            //    paddlePosition3.Y += ballVelocity.Y;
-            //}
-            //if (paddlePosition4.X > ballVelocity.X)
-            //{
-            //    paddlePosition4.X -= ballVelocity.X;
-            //}
-            //else
-            //{
-            //    paddlePosition4.X += ballVelocity.X;
-            //}
-
-            // Check for scoring
+            if (!player2Active)
+            {
+                if (paddlePosition2.Y > ballPosition.Y)
+                {
+                    paddlePosition2.Y -= paddleSpeed / 2;
+                }
+                else
+                {
+                    paddlePosition2.Y += paddleSpeed / 2;
+                }
+            }
+            if (!player3Active)
+            {
+                if (paddlePosition3.Y > ballPosition.Y)
+                {
+                    paddlePosition3.Y -= paddleSpeed / 2;
+                }
+                else
+                {
+                    paddlePosition3.Y += paddleSpeed / 2;
+                }
+            }
+            if (!player4Active)
+            {
+                if (paddlePosition4.X > ballPosition.X)
+                {
+                    paddlePosition4.X -= paddleSpeed / 2;
+                }
+                else
+                {
+                    paddlePosition4.X += paddleSpeed / 2;
+                }
+            }
+            // Wanneer er gescoord is.
             if (ballPosition.X < 0)
             {
                 scorePlayer2--;
@@ -287,25 +298,25 @@ namespace Pong_game_Gamedev
                 ResetBall();
             }
             // Kijken of er een speler game over is
-            if (scorePlayer3 == 0)
+            if (scorePlayer1 == 0)
             {
                 gameOver = true;
-                loser = "Player 3";
+                loser = "Speler 1";
             }
             else if (scorePlayer2 == 0)
             {
                 gameOver = true;
-                loser = "Player 2";
+                loser = "Speler 2";
             }
-            else if (scorePlayer1 == 0)
+            else if (scorePlayer3 == 0)
             {
                 gameOver = true;
-                loser = "Player 1";
+                loser = "Speler 3";
             }
             else if (scorePlayer4 == 0)
             {
                 gameOver = true;
-                loser = "Player 4";
+                loser = "Speler 4";
             }
             base.Update(gameTime);
         }
@@ -331,7 +342,10 @@ namespace Pong_game_Gamedev
             scorePlayer1 = 10;
             scorePlayer4 = 10;
             gameOver = false;
-            playerActive = false;
+            player1Active = false;
+            player2Active = false;
+            player3Active = false;
+            player4Active = false;
             loser = string.Empty;
             ResetBall();
         }
@@ -356,11 +370,11 @@ namespace Pong_game_Gamedev
 
             if (gameStart)
             {
-                _spriteBatch.DrawString(scoreFont, $"Press Enter to start the game", new Vector2(screenWidth / 2 - 150, screenHeight / 2 - 100), Color.White);
+                _spriteBatch.DrawString(scoreFont, $"Klik op Enter om te beginnen", new Vector2(screenWidth / 2 - 150, screenHeight / 2 - 100), Color.White);
             }
             if (gameOver)
             {
-                _spriteBatch.DrawString(scoreFont, $"{loser} has lost the game. Press Enter to restart", new Vector2(screenWidth / 2 - 150, screenHeight / 2 - 100), Color.White);
+                _spriteBatch.DrawString(scoreFont, $"{loser} heeft verloren. klik op Enter om opnieuw te spelen.", new Vector2(screenWidth / 2 - 150, screenHeight / 2 - 100), Color.White);
             }
             _spriteBatch.End();
             base.Draw(gameTime);
